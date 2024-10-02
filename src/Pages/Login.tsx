@@ -13,7 +13,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     // Simple login validation
     if (username === "user" && password === "password") {
-      navigate("/chat");
+      navigate("/login");
     } else {
       setError("Invalid username or password");
     }

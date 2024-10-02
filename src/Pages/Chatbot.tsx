@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import "./Chatbot.scss";
 
+const urlRegex = /(https?:\/\/[^\s]+)/g; // Regular expression to detect URLs
+
 const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<{ text: string; sender: string }[]>(
     []
@@ -12,14 +14,35 @@ const Chatbot: React.FC = () => {
     if (input.trim()) {
       setMessages([...messages, { text: input, sender: "user" }]);
       setInput("");
-      // Simulate bot response (this would be an API call in a real app)
+
+      // Simulate bot response
       setTimeout(() => {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { text: "Hello, how can I assist you?", sender: "bot" },
+          {
+            text: "Thank you for sending this! Here's what I found:",
+            sender: "bot",
+          },
         ]);
       }, 1000);
     }
+  };
+
+  // Function to render message and embed any URLs as iframes
+  const renderMessage = (message: string) => {
+    const parts = message.split(urlRegex); // Split message based on URLs
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        // If part is a URL, render as an iframe
+        return (
+          <div className="embed-container" key={index}>
+            <iframe src={part} title={`embedded-${index}`} allowFullScreen />
+          </div>
+        );
+      }
+      // Render normal text
+      return <span key={index}>{part}</span>;
+    });
   };
 
   return (
@@ -31,11 +54,10 @@ const Chatbot: React.FC = () => {
           <li>Conversation 1</li>
           <li>Conversation 2</li>
           <li>Conversation 3</li>
-          <li>...</li>
         </ul>
       </div>
 
-      {/* Main chat window */}
+      {/* Chat Window */}
       <div className="chatbot-container">
         <div className="header">Chatbot</div>
         <div className="chat-window">
@@ -46,10 +68,12 @@ const Chatbot: React.FC = () => {
                 message.sender === "user" ? "user-message" : "bot-message"
               }`}
             >
-              {message.text}
+              {renderMessage(message.text)}
             </div>
           ))}
         </div>
+
+        {/* Input Area */}
         <div className="input-area">
           <input
             type="text"
