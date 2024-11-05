@@ -1,0 +1,79 @@
+// Scoping PDF styles
+.pdf-viewer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    max-width: 800px;
+    margin: 20px auto;
+    
+    // Styling for the title
+    .pdf-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #002554;  // Primary color for the title
+      margin-bottom: 15px;
+    }
+  
+    // Header section styling
+    .pdf-header {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+  
+    // Body styling (the main text/content area)
+    .pdf-body {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #444;
+      margin-bottom: 20px;
+      text-align: justify;
+    }
+  
+    // Footer section styling
+    .pdf-footer {
+      font-size: 14px;
+      color: #666;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+      margin-top: 20px;
+      text-align: center;
+    }
+  
+    // Specific text alignments
+    .text-center {
+      text-align: center;
+    }
+  
+    .text-left {
+      text-align: left;
+    }
+  
+    .text-right {
+      text-align: right;
+    }
+  
+    // Custom button styling for PDF actions (if any)
+    .pdf-button {
+      padding: 10px 20px;
+      background-color: #9e762b;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+  
+      &:hover {
+        background-color: #af8b30;
+      }
+    }
+  }
+  

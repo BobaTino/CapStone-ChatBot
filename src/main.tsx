@@ -1,7 +1,6 @@
+// Main.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-// import App from "./App.tsx";
-// import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // Pages
@@ -11,15 +10,15 @@ import WindowsLoginRedirect from "./Pages/WindowsLoginRedirect"; // Adjusted pat
 
 const router = createBrowserRouter([
   {
-    path: "/", // The root page, which is the login page
+    path: "/", // Root page, which is the login page
     element: <LoginPage />,
   },
   {
-    path: "login", // The Windows login redirect placeholder page
+    path: "login", // Windows login redirect placeholder page
     element: <WindowsLoginRedirect />,
   },
   {
-    path: "chat", // The chatbot page
+    path: "chat", // Chatbot page
     element: <ChatbotPage />,
   },
 ]);
