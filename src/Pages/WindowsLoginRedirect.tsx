@@ -19,6 +19,11 @@ const WindowsLoginRedirect: React.FC = () => {
     <div className="windows-login-container">
       <h2>Windows Login</h2>
       <p>Redirecting you to log in through your Windows account...</p>
+      <div className="loading-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
   );
 };
