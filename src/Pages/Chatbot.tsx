@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 import "./Chatbot.scss";
 
 const urlRegex = /(https?:\/\/[^\s]+)/g;
 const pdfRegex = /\.pdf$/i;
 const googleMapsRegex = /https?:\/\/(www\.)?google\.[a-z]+\/maps/;
+
+//TODO: Add connections for the backend...
 
 const startingPrompts = [
   "Where is the Yeager Center?",
@@ -12,6 +15,7 @@ const startingPrompts = [
 ];
 
 const Chatbot: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
   const [chatHistories, setChatHistories] = useState<{
     [key: string]: {
       name: string;
@@ -110,7 +114,8 @@ const Chatbot: React.FC = () => {
       }
 
       if (!botResponse) {
-        botResponse = "Apologies, but this is just a placeholder response. Once we're connected to the backend, you'll get a response from our bot!";
+        botResponse =
+          "Apologies, but this is just a placeholder response. Once we're connected to the backend, you'll get a response from our bot!";
       }
 
       setChatHistories((prev) => ({
@@ -164,7 +169,7 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    <div className="chatbot-layout">
+    <div className={`chatbot-layout ${theme}`}>
       <div className="sidebar">
         <h3>Conversations</h3>
         <ul>
@@ -187,6 +192,9 @@ const Chatbot: React.FC = () => {
           ))}
         </ul>
         <button onClick={createNewChat}>New Conversation</button>
+        <button onClick={toggleTheme}>
+          Switch to {theme === "light" ? "dark" : "light"} theme
+        </button>
       </div>
 
       <div className="chatbot-container">

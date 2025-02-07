@@ -1,10 +1,44 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --sidebar-bg: #f4f4f4;
+  --sidebar-active-bg: #002554;
+  --sidebar-text-active: white;
+  --button-bg: #9e762b;
+  --button-hover-bg: #af8b30;
+  --header-bg: #002554;
+  --chat-window-bg: #f9f9f9;
+  --user-message-bg: #d1ffd6;
+  --bot-message-bg: #f1f1f1;
+  --typing-indicator: #ccc;
+  --spinner-border: #002554;
+}
+
+.dark {
+  --bg-color: #1e1e1e;
+  --text-color: #ffffff;
+  --sidebar-bg: #333;
+  --sidebar-active-bg: #00407a;
+  --sidebar-text-active: white;
+  --button-bg: #9e762b;
+  --button-hover-bg: #af8b30;
+  --header-bg: #002554;
+  --chat-window-bg: #2c2c2c;
+  --user-message-bg: #265d34;
+  --bot-message-bg: #444;
+  --typing-indicator: #888;
+  --spinner-border: #af8b30;
+}
+
 .chatbot-layout {
   display: flex;
   height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 
   .sidebar {
     width: 250px;
-    background-color: #f4f4f4;
+    background-color: var(--sidebar-bg);
     padding: 1rem;
     border-right: 1px solid #ddd;
 
@@ -26,8 +60,8 @@
         align-items: center;
 
         &.active {
-          background-color: #002554;
-          color: white;
+          background-color: var(--sidebar-active-bg);
+          color: var(--sidebar-text-active);
         }
 
         button {
@@ -42,14 +76,14 @@
     button {
       width: 100%;
       padding: 0.5rem;
-      background-color: #9e762b;
+      background-color: var(--button-bg);
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
 
       &:hover {
-        background-color: #af8b30;
+        background-color: var(--button-hover-bg);
       }
     }
   }
@@ -60,7 +94,7 @@
     flex-direction: column;
 
     .header {
-      background-color: #002554;
+      background-color: var(--header-bg);
       color: white;
       padding: 1rem;
       text-align: center;
@@ -70,20 +104,22 @@
       flex: 1;
       padding: 1rem;
       overflow-y: auto;
-      background-color: #f9f9f9;
+      background-color: var(--chat-window-bg);
 
       .message {
         padding: 0.5rem 1rem;
         margin-bottom: 0.5rem;
         border-radius: 5px;
+        max-width: 75%;
+        word-wrap: break-word;
 
         &.user-message {
-          background-color: #d1ffd6;
+          background-color: var(--user-message-bg);
           align-self: flex-end;
         }
 
         &.bot-message {
-          background-color: #f1f1f1;
+          background-color: var(--bot-message-bg);
           align-self: flex-start;
 
           &.loading {
@@ -96,7 +132,7 @@
               span {
                 width: 8px;
                 height: 8px;
-                background-color: #ccc;
+                background-color: var(--typing-indicator);
                 border-radius: 50%;
                 animation: bounce 1s infinite ease-in-out;
 
@@ -116,30 +152,30 @@
 
     .prompt-options {
       text-align: center;
+      padding: 1rem;
+      background-color: var(--chat-window-bg);
 
       h4 {
         margin-bottom: 1rem;
-        color: #002554;
+        color: var(--header-bg);
       }
 
-      ul {
-        list-style: none;
-        padding: 0;
+      div {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
 
-        li {
-          margin-bottom: 1rem;
+        .prompt-button {
+          padding: 0.5rem 1rem;
+          background-color: var(--header-bg);
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
 
-          .prompt-button {
-            padding: 0.5rem 1rem;
-            background-color: #002554;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-
-            &:hover {
-              background-color: #00407a;
-            }
+          &:hover {
+            background-color: var(--sidebar-active-bg);
           }
         }
       }
@@ -160,14 +196,14 @@
 
       button {
         padding: 0.5rem 1rem;
-        background-color: #9e762b;
+        background-color: var(--button-bg);
         color: white;
         border: none;
         border-radius: 5px;
         cursor: pointer;
 
         &:hover {
-          background-color: #af8b30;
+          background-color: var(--button-hover-bg);
         }
       }
     }
@@ -182,7 +218,7 @@
         width: 50px;
         height: 50px;
         border: 4px solid #ddd;
-        border-top: 4px solid #002554;
+        border-top: 4px solid var(--spinner-border);
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }

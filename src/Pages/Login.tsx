@@ -18,7 +18,7 @@ const Login: React.FC = () => {
       setError("Invalid username or password");
     }
   };
-
+  //TODO: Connect backend's authentication here, as well as a sign-up section
   return (
     <div className="login-container">
       <div className="login-box">
