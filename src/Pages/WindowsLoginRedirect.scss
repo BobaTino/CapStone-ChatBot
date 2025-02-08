@@ -1,0 +1,52 @@
+.windows-login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #002554; // Header color used as the background
+
+  h2 {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #d1ffd6; // Using the user message color for the text
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    span {
+      width: 10px;
+      height: 10px;
+      margin: 0 5px;
+      background-color: white;
+      border-radius: 50%;
+      animation: bounce 1.5s infinite ease-in-out;
+    }
+
+    span:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+
+    span:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+  }
+
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
+  }
+}
