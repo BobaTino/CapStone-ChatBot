@@ -7,6 +7,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import LoginPage from "./Pages/Login";
 import ChatbotPage from "./Pages/Chatbot";
 import WindowsLoginRedirect from "./Pages/WindowsLoginRedirect"; // Adjusted path if needed
+import SettingsPage from "./Pages/Settings"; // Adjusted path if needed
+// import UserTypePage from "./Pages/UserType"; // Import UserType component
 
 const router = createBrowserRouter([
   {
@@ -21,6 +23,14 @@ const router = createBrowserRouter([
     path: "chat", // Chatbot page
     element: <ChatbotPage />,
   },
+  {
+    path: "settings", // Settings page
+    element: <SettingsPage />,
+  },
+  // {
+  //   path: "user-type", // UserType page
+  //   element: <UserTypePage />,
+  // },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

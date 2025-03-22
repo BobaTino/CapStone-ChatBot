@@ -88,18 +88,34 @@ app.post("/api/saveMessage", async (req, res) => {
   const { senderId, content, chatId } = req.body;
 
   try {
-    const messageResult = await messagesClient.db("test").collection("messages").insertOne({
+    const messageResultTest = await messagesClient.db("test").collection("messages").insertOne({
       sender_ID: senderId,
       content: content,
       timesent: new Date(),
     });
 
-    const messageId = messageResult.insertedId;
+    const messageId = messageResultTest.insertedId;
 
     await authClient.db("test").collection("saved_chats").updateOne(
       { _id: ObjectId(chatId) },
       { $push: { messages: messageId } }
     );
+
+    // Save user messages to user_query/user_messages
+    if (senderId !== "bot") {
+      await messagesClient.db("user_query").collection("user_messages").insertOne({
+        sender_ID: senderId,
+        content: content,
+        timesent: new Date(),
+      });
+    } else {
+      // Save bot messages to chatbot_query/bot_messages
+      await messagesClient.db("chatbot_query").collection("bot_messages").insertOne({
+        sender_ID: "bot",
+        content: content,
+        timesent: new Date(),
+      });
+    }
 
     res.status(201).json({ message: "Message saved successfully" });
   } catch (err) {
@@ -120,16 +136,26 @@ app.post("/api/login", async (req, res) => {
     if (user) {
       console.log("User email:", user.email);
       console.log("User password:", user.password);
+      console.log("User isStaff:", user.isStaff);
     }
 
     if (user && email.endsWith("@calbaptist.edu") && user.password === password) {
-      res.status(200).json({ message: "Login successful", userId: user._id });
+      let isStaff = user.isStaff;
+      if (isStaff == undefined) {
+        isStaff = false;
+        await authClient.db("test").collection("users").updateOne(
+          { _id: user._id },
+          { $set: { isStaff: false } }
+        );
+      }
+      const message = isStaff ? "Login successful - Full chatbot privileges enabled" : "Login successful";
+      res.status(200).json({ message, userId: user._id, isStaff, alert: message });
     } else {
-      res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Invalid email or password", alert: "Invalid email or password" });
     }
   } catch (err) {
     console.error("Error during login:", err); // Log any errors
-    res.status(500).json({ message: "An error occurred. Please try again." });
+    res.status(500).json({ message: "An error occurred. Please try again.", alert: "An error occurred. Please try again." });
   }
 });
 
@@ -222,8 +248,101 @@ app.delete("/api/deleteChat", async (req, res) => {
   }
 });
 
-// The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
-app.get("*", (req, res) => {
+// Check if user is staff route
+app.get("/api/isStaff", async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    const user = await authClient.db("test").collection("users").findOne({ _id: ObjectId(userId) });
+    if (user) {
+      res.status(200).json({ isStaff: user.isStaff || false });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (err) {
+    console.error("Error checking if user is staff:", err);
+    res.status(500).json({ message: "An error occurred while checking if the user is staff" });
+  }
+});
+
+// Check if user is staff route
+app.get("/api/checkIsStaff", async (req, res) => {
+  const { userId } = req.query;
+  console.log("Received request to check if user is staff:", userId); // Log the request
+
+  try {
+    const isStaff = await app.checkIsStaff(userId);
+    console.log("isStaff status for user:", userId, isStaff); // Log the isStaff status
+    res.status(200).json({ isStaff });
+  } catch (err) {
+    console.error("Error checking if user is staff:", err);
+    res.status(500).json({ message: "An error occurred while checking if the user is staff" });
+  }
+});
+
+// Method to check if user is staff
+app.checkIsStaff = async (userId) => {
+  console.log("Checking if user is staff:", userId); // Log the function call
+  try {
+    const user = await authClient.db("test").collection("users").findOne({ _id: ObjectId(userId) });
+    const isStaff = user?.isStaff || false;
+    console.log("isStaff status found:", isStaff); // Log the isStaff status
+    return isStaff;
+  } catch (err) {
+    console.error("Error checking if user is staff:", err);
+    throw new Error("An error occurred while checking if the user is staff");
+  }
+};
+
+// User query route
+app.post("/api/user_query/test", async (req, res) => {
+  const { query, chatId, userId } = req.body;
+  console.log("Received user query:", { query, chatId, userId }); // Log the request
+
+  try {
+    const isStaff = await app.checkIsStaff(userId);
+    console.log("isStaff status:", isStaff); // Log the isStaff status
+
+    // Simulate chatbot processing
+    setTimeout(async () => {
+      const botResponse = `Processed response for query: ${query}`;
+
+      // Save the bot response to the chat
+      try {
+        console.log("Saving bot response to messages collection"); // Log the request
+        const messageResultTest = await messagesClient.db("test").collection("messages").insertOne({
+          sender_ID: "bot",
+          content: botResponse,
+          timesent: new Date(),
+        });
+
+        const messageResultBot = await messagesClient.db("chatbot_query").collection("bot_messages").insertOne({
+          sender_ID: "bot",
+          content: botResponse,
+          timesent: new Date(),
+        });
+
+        const messageId = messageResultTest.insertedId;
+
+        await authClient.db("test").collection("saved_chats").updateOne(
+          { _id: ObjectId(chatId) },
+          { $push: { messages: messageId } }
+        );
+
+        res.status(201).json({ message: "Bot response saved successfully", isStaff });
+      } catch (err) {
+        console.error("Error saving bot response:", err);
+        res.status(500).json({ message: "An error occurred while saving the bot response" });
+      }
+    }, 1000);
+  } catch (err) {
+    console.error("Error during user query:", err);
+    res.status(500).json({ message: "An error occurred. Please try again." });
+  }
+});
+
+// User query route
+app.post("/api/user_query/test", async (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html")); // Adjust "dist" to your build directory
 });
 

@@ -147,6 +147,37 @@
             }
           }
         }
+
+        .rating-buttons {
+          display: flex;
+          gap: 0.5rem;
+          margin-top: 0.5rem;
+
+          button {
+            padding: 0.25rem 0.5rem;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+
+            &:hover {
+              background-color: var(--button-hover-bg);
+            }
+          }
+        }
+
+        .feedback-input {
+          margin-top: 0.5rem;
+
+          textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+          }
+        }
       }
     }
 

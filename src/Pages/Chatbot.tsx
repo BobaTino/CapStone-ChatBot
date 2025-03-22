@@ -19,15 +19,46 @@ const Chatbot: React.FC = () => {
   const [chatHistories, setChatHistories] = useState<{
     [key: string]: {
       name: string;
-      messages: { text: string; sender: string }[];
+      messages: { text: string; sender: string; rating?: string; feedback?: string }[];
     };
   }>({});
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [input, setInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+  // State to track if the user is a staff member
+  var [isStaff, setIsStaff] = useState<boolean>(false);
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
+
+    const checkIsStaff = async () => {
+      try {
+      console.log("Calling checkIsStaff for userId:", userId); // Log the function call
+      const response = await fetch(`/api/checkIsStaff?userId=${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("checkIsStaff response:", data); // Log the response
+        const isStaffValue = data.isStaff.toString() === "true";
+        localStorage.setItem("isStaff", isStaffValue.toString());
+        setIsStaff(isStaffValue);
+      } else {
+        console.error("Failed to check isStaff status");
+      }
+      } catch (err) {
+      console.error("Error checking isStaff status:", err);
+      }
+    };
+
+    checkIsStaff();
+  }, []);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    const storedIsStaff = localStorage.getItem("isStaff") === "true"; // Retrieve isStaff status from local storage
+    console.log("Retrieved isStaff from local storage:", storedIsStaff); // Log the retrieved value
+    setIsStaff(storedIsStaff); // Set the isStaff state based on the stored value
+
     if (!userId) {
       navigate("/login");
       return;
@@ -64,6 +95,12 @@ const Chatbot: React.FC = () => {
   useEffect(() => {
     localStorage.setItem("chatHistories", JSON.stringify(chatHistories));
   }, [chatHistories]);
+
+  useEffect(() => {
+    if (isStaff) {
+      setShowPopup(true);
+    }
+  }, [isStaff]);
 
   const createNewChat = async () => {
     const userId = localStorage.getItem("userId");
@@ -165,6 +202,7 @@ const Chatbot: React.FC = () => {
     setLoading(true);
 
     try {
+      console.log("Sending message to saveMessage API"); // Log the request
       const response = await fetch("/api/saveMessage", {
         method: "POST",
         headers: {
@@ -180,8 +218,31 @@ const Chatbot: React.FC = () => {
       if (!response.ok) {
         console.error("Failed to save message");
       }
+
+      console.log("Sending user query to user_query API"); // Log the request
+      const queryResponse = await fetch("/api/user_query/test", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: message,
+          chatId: activeChatId,
+          userId: userId,
+        }),
+      });
+
+      const queryData = await queryResponse.json();
+
+      if (!queryResponse.ok) {
+        console.error("Failed to send user query to message handler");
+      } else {
+        console.log("isStaff status from server:", queryData.isStaff); // Log the isStaff status
+        localStorage.setItem("isStaff", queryData.isStaff.toString());
+        setIsStaff(queryData.isStaff);
+      }
     } catch (err) {
-      console.error("Error saving message:", err);
+      console.error("Error saving message or sending user query:", err);
     }
 
     setTimeout(async () => {
@@ -204,7 +265,13 @@ const Chatbot: React.FC = () => {
       if (!botResponse) {
         botResponse =
           "Apologies, but this is just a placeholder response. Once we're connected to the backend, you'll get a response from our bot!";
+        if (isStaff) {
+          botResponse += " (Note that you are a CBU staff member who has access to the full chatbot.)";
+        }
       }
+
+      console.log("isStaff status before final bot response:", isStaff); // Log the isStaff status before final bot response
+      console.log("Final bot response:", botResponse); // Log the final bot response
 
       setChatHistories((prev) => ({
         ...prev,
@@ -220,6 +287,7 @@ const Chatbot: React.FC = () => {
 
       // Save the bot response to the backend
       try {
+        console.log("Saving bot response to saveMessage API"); // Log the request
         const response = await fetch("/api/saveMessage", {
           method: "POST",
           headers: {
@@ -241,44 +309,99 @@ const Chatbot: React.FC = () => {
     }, 1000);
   };
 
-  const renderMessage = (message: string) => {
-    const parts = message.split(urlRegex);
-    return parts.map((part, index) => {
-      if (urlRegex.test(part)) {
-        if (pdfRegex.test(part)) {
-          return (
-            <div className="embed-container-pdf" key={index}>
-              <iframe
-                src={part}
-                title={`embedded-pdf-${index}`}
-                className="pdf-frame"
-              />
-            </div>
-          );
-        } else if (googleMapsRegex.test(part)) {
-          return (
-            <div className="embed-container" key={index}>
-              <iframe
-                src={part}
-                title={`embedded-map-${index}`}
-                allowFullScreen
-              />
-            </div>
-          );
-        } else {
-          return (
-            <div className="embed-container" key={index}>
-              <iframe src={part} title={`embedded-${index}`} allowFullScreen />
-            </div>
-          );
-        }
-      }
-      return <span key={index}>{part}</span>;
+  const handleRating = async (chatId: string, messageIndex: number, rating: string, feedback?: string) => {
+    setChatHistories((prev) => {
+      const updatedMessages = [...prev[chatId].messages];
+      updatedMessages[messageIndex] = {
+        ...updatedMessages[messageIndex],
+        rating,
+        feedback,
+      };
+      return {
+        ...prev,
+        [chatId]: {
+          ...prev[chatId],
+          messages: updatedMessages,
+        },
+      };
     });
+
+    // Save the rating and feedback to the backend
+    try {
+      await fetch("/api/saveMessageRating", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chatId,
+          messageIndex,
+          rating,
+          feedback,
+        }),
+      });
+    } catch (err) {
+      console.error("Error saving message rating:", err);
+    }
+  };
+
+  const renderMessage = (message: { text: string; sender: string; rating?: string; feedback?: string }, index: number) => {
+    const parts = message.text.split(urlRegex);
+    return (
+      <div key={index} className={`message ${message.sender === "user" ? "user-message" : "bot-message"}`}>
+        {parts.map((part, i) => {
+          if (urlRegex.test(part)) {
+            if (pdfRegex.test(part)) {
+              return (
+                <div className="embed-container-pdf" key={i}>
+                  <iframe src={part} title={`embedded-pdf-${i}`} className="pdf-frame" />
+                </div>
+              );
+            } else if (googleMapsRegex.test(part)) {
+              return (
+                <div className="embed-container" key={i}>
+                  <iframe src={part} title={`embedded-map-${i}`} allowFullScreen />
+                </div>
+              );
+            } else {
+              return (
+                <div className="embed-container" key={i}>
+                  <iframe src={part} title={`embedded-${i}`} allowFullScreen />
+                </div>
+              );
+            }
+          }
+          return <span key={i}>{part}</span>;
+        })}
+        {message.sender === "bot" && !message.rating && (
+          <div className="rating-buttons">
+            <button onClick={() => handleRating(activeChatId!, index, "helpful")}>Helpful</button>
+            <button onClick={() => handleRating(activeChatId!, index, "not helpful")}>Not Helpful</button>
+          </div>
+        )}
+        {message.rating === "not helpful" && !message.feedback && (
+          <div className="feedback-input">
+            <textarea
+              placeholder="Please provide feedback..."
+              onBlur={(e) => handleRating(activeChatId!, index, "not helpful", e.target.value)}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
     <div className={`chatbot-layout ${theme}`}>
+      {showPopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <h2>Full Chatbot Privileges Enabled</h2>
+            <p>As a staff member, the chatbot will have no limits in regards to its stored source material.</p>
+            <button onClick={() => setShowPopup(false)}>Ok</button>
+          </div>
+        </div>
+      )}
       <div className="sidebar">
         <h3>Conversations</h3>
         <ul>
@@ -318,7 +441,7 @@ const Chatbot: React.FC = () => {
                     message.sender === "user" ? "user-message" : "bot-message"
                   }`}
                 >
-                  {renderMessage(message.text)}
+                  {renderMessage(message, index)}
                 </div>
               ))}
               {loading && (
