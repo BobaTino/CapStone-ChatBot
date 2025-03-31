@@ -305,7 +305,20 @@ app.post("/api/user_query/test", async (req, res) => {
 
     // Simulate chatbot processing
     setTimeout(async () => {
-      const botResponse = `Processed response for query: ${query}`;
+      let botResponse = `Processed response for query: ${query}`;
+
+      // Uncomment the following code to fetch the latest bot response from chatbot_query/bot_info
+      /*
+      try {
+        console.log("Fetching latest bot response from bot_info collection"); // Log the request
+        const latestBotInfo = await messagesClient.db("chatbot_query").collection("bot_info").find().sort({ timesent: -1 }).limit(1).toArray();
+        botResponse = latestBotInfo[0]?.content || "No response from IQ cluster";
+        console.log("Latest bot response from bot_info:", botResponse); // Log the latest bot response
+      } catch (err) {
+        console.error("Error fetching latest bot response:", err);
+        botResponse = "An error occurred while fetching the latest bot response.";
+      }
+      */
 
       // Save the bot response to the chat
       try {
